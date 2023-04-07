@@ -1,0 +1,31 @@
+create table brands 
+(
+category varchar(20),
+brand_name varchar(20)
+);
+insert into brands values
+('chocolates','5-star')
+,(null,'dairy milk')
+,(null,'perk')
+,(null,'eclair')
+,('Biscuits','britannia')
+,(null,'good day')
+,(null,'boost');
+
+with cte1 as 
+(select *,
+row_number() over () as rn
+from brands
+),
+cte2 as
+(
+select *,
+lead(rn) over(order by rn) as next_rn from cte1 where category is not null
+)
+select b.category,a.brand_name
+from cte1 a 
+join
+cte2 b
+on a.rn>=b.rn and (a.rn<=b.next_rn-1 or b.next_rn is null)
+
+	
