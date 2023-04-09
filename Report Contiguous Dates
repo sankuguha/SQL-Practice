@@ -1,0 +1,19 @@
+with recursive cte1 as
+(select 'succeeded' as period_state,* from Succeeded
+union all
+select 'failed' as period_state,* from Failed),
+cte2 as 
+(select *,
+row_number() over(order by success_date) as rn
+from cte1 where success_date >='2019-01-01'),
+cte3 as
+(select period_state,success_date,rn,1 as flag from cte2 where rn=1
+ union all
+ select b.period_state,b.success_date,b.rn,
+ case when a.period_state=b.period_state then 0 else 1 end + flag as flag from cte3 a
+ join cte2 b
+ on a.rn+1=b.rn
+ )
+ select period_state,min(success_date) as start_date,max(success_date) as end_date from cte3
+ group by period_state,flag
+ order by start_date
